@@ -58,17 +58,17 @@ resource "oci_core_security_list" "main" {
   #     stateless = false
   #   }
 
-  # Allow inbound icmp traffic of a specific type
-  ingress_security_rules {
-    protocol  = 1
-    source    = "0.0.0.0/0"
-    stateless = false
-
-    icmp_options {
-      type = 3
-      code = 4
-    }
-  }
+  # # Allow inbound icmp traffic of a specific type
+  # ingress_security_rules {
+  #   protocol  = 1
+  #   source    = "0.0.0.0/0"
+  #   stateless = false
+  #
+  #   icmp_options {
+  #     type = 3
+  #     code = 4
+  #   }
+  # }
 }
 
 resource "oci_core_subnet" "main" {
