@@ -63,6 +63,17 @@ resource "oci_core_security_list" "main" {
       }
     }
 
+    ingress_security_rules {
+      protocol  = "6"
+      source    = "::/0"
+      stateless = false
+
+      tcp_options {
+        min = 443
+        max = 443
+      }
+    }
+
 
   # # Allow inbound icmp traffic of a specific type
   # ingress_security_rules {
