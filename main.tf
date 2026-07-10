@@ -27,6 +27,37 @@ data "oci_identity_availability_domain" "main" {
   ad_number      = var.availability_domain
 }
 
+data "http" "my_ip" {
+  url = "https://ipv4.icanhazip.com/"
+}
+
+locals {
+  cloudflare_ip_ranges = [
+    "173.245.48.0/20",
+    "103.21.244.0/22",
+    "103.22.200.0/22",
+    "103.31.4.0/22",
+    "141.101.64.0/18",
+    "108.162.192.0/18",
+    "190.93.240.0/20",
+    "188.114.96.0/20",
+    "197.234.240.0/22",
+    "198.41.128.0/17",
+    "162.158.0.0/15",
+    "104.16.0.0/13",
+    "104.24.0.0/14",
+    "172.64.0.0/13",
+    "131.0.72.0/22",
+    "2400:cb00::/32",
+    "2606:4700::/32",
+    "2803:f800::/32",
+    "2405:b500::/32",
+    "2405:8100::/32",
+    "2a06:98c0::/29",
+    "2c0f:f248::/32",
+  ]
+}
+
 resource "oci_core_security_list" "main" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.main.id
@@ -52,27 +83,92 @@ resource "oci_core_security_list" "main" {
   #     stateless = false
   #   }
   #
-    ingress_security_rules {
-      protocol  = "6"
-      source    = "::/0"
-      stateless = false
+  #   ingress_security_rules {
+  #     protocol  = "6"
+  #     source    = "151.145.85.226/32"
+  #     stateless = false
+  #
+  #     # tcp_options {
+  #     #   min = 22
+  #     #   max = 22
+  #     # }
+  #   }
 
-      tcp_options {
-        min = 80
-        max = 80
-      }
-    }
+  ingress_security_rules {
+    protocol  = "6"
+    source    = "${chomp(data.http.my_ip.response_body)}/32"
+    stateless = false
 
-    ingress_security_rules {
-      protocol  = "6"
-      source    = "::/0"
-      stateless = false
+    # tcp_options {
+    #   min = 22
+    #   max = 22
+    # }
+  }
 
-      tcp_options {
-        min = 443
-        max = 443
-      }
-    }
+  # ingress_security_rules {
+  #   protocol  = "6"
+  #   source    = "178.237.232.251/32"
+  #   stateless = false
+  #
+  #   # tcp_options {
+  #   #   min = 22
+  #   #   max = 22
+  #   # }
+  # }
+
+  # ingress_security_rules {
+  #   protocol  = "6"
+  #   source    = "77.91.77.81/32"
+  #   stateless = false
+  #
+  #   # tcp_options {
+  #   #   min = 22
+  #   #   max = 22
+  #   # }
+  # }
+
+  # ingress_security_rules {
+  #   protocol  = "6"
+  #   source    = "79.177.159.176/32"
+  #   stateless = false
+  #
+  #   # tcp_options {
+  #   #   min = 22
+  #   #   max = 22
+  #   # }
+  # }
+  # ingress_security_rules {
+  #   protocol  = "6"
+  #   source    = "109.186.220.11/32"
+  #   stateless = false
+  #
+  #   # tcp_options {
+  #   #   min = 22
+  #   #   max = 22
+  #   # }
+  # }
+  # ingress_security_rules {
+  #   protocol  = "6"
+  #   source    = "46.210.198.88/32"
+  #   stateless = false
+  #
+  #   # tcp_options {
+  #   #   min = 22
+  #   #   max = 22
+  #   # }
+  # }
+
+  #
+  #   ingress_security_rules {
+  #     protocol  = "6"
+  #     source    = "::/0"
+  #     stateless = false
+  #
+  #     tcp_options {
+  #       min = 443
+  #       max = 443
+  #     }
+  #   }
 
 
   # # Allow inbound icmp traffic of a specific type
@@ -86,6 +182,26 @@ resource "oci_core_security_list" "main" {
   #     code = 4
   #   }
   # }
+}
+
+resource "oci_core_security_list" "cloudflare" {
+  compartment_id = var.compartment_ocid
+  vcn_id         = oci_core_vcn.main.id
+  display_name = format("%sCloudflareSecurityList", replace(title(var.instance_name), "/\\s/", ""))
+
+  dynamic "ingress_security_rules" {
+    for_each = toset(local.cloudflare_ip_ranges)
+    content {
+      protocol  = "6"
+      source    = ingress_security_rules.value
+      stateless = false
+
+      tcp_options {
+        min = 80
+        max = 80
+      }
+    }
+  }
 }
 
 resource "oci_core_subnet" "main" {
