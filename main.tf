@@ -76,24 +76,6 @@ resource "oci_core_security_list" "main" {
     stateless   = false
   }
 
-  #   # Allow inbound traffic on all ports for all protocols
-  #   ingress_security_rules {
-  #     protocol  = "all"
-  #     source    = "0.0.0.0/0"
-  #     stateless = false
-  #   }
-  #
-  #   ingress_security_rules {
-  #     protocol  = "6"
-  #     source    = "151.145.85.226/32"
-  #     stateless = false
-  #
-  #     # tcp_options {
-  #     #   min = 22
-  #     #   max = 22
-  #     # }
-  #   }
-
   ingress_security_rules {
     protocol  = "6"
     source    = "${chomp(data.http.my_ip.response_body)}/32"
@@ -104,84 +86,6 @@ resource "oci_core_security_list" "main" {
     #   max = 22
     # }
   }
-
-  # ingress_security_rules {
-  #   protocol  = "6"
-  #   source    = "178.237.232.251/32"
-  #   stateless = false
-  #
-  #   # tcp_options {
-  #   #   min = 22
-  #   #   max = 22
-  #   # }
-  # }
-
-  # ingress_security_rules {
-  #   protocol  = "6"
-  #   source    = "77.91.77.81/32"
-  #   stateless = false
-  #
-  #   # tcp_options {
-  #   #   min = 22
-  #   #   max = 22
-  #   # }
-  # }
-
-  # ingress_security_rules {
-  #   protocol  = "6"
-  #   source    = "79.177.159.176/32"
-  #   stateless = false
-  #
-  #   # tcp_options {
-  #   #   min = 22
-  #   #   max = 22
-  #   # }
-  # }
-  # ingress_security_rules {
-  #   protocol  = "6"
-  #   source    = "109.186.220.11/32"
-  #   stateless = false
-  #
-  #   # tcp_options {
-  #   #   min = 22
-  #   #   max = 22
-  #   # }
-  # }
-  # ingress_security_rules {
-  #   protocol  = "6"
-  #   source    = "46.210.198.88/32"
-  #   stateless = false
-  #
-  #   # tcp_options {
-  #   #   min = 22
-  #   #   max = 22
-  #   # }
-  # }
-
-  #
-  #   ingress_security_rules {
-  #     protocol  = "6"
-  #     source    = "::/0"
-  #     stateless = false
-  #
-  #     tcp_options {
-  #       min = 443
-  #       max = 443
-  #     }
-  #   }
-
-
-  # # Allow inbound icmp traffic of a specific type
-  # ingress_security_rules {
-  #   protocol  = 1
-  #   source    = "0.0.0.0/0"
-  #   stateless = false
-  #
-  #   icmp_options {
-  #     type = 3
-  #     code = 4
-  #   }
-  # }
 }
 
 resource "oci_core_security_list" "cloudflare" {
@@ -209,7 +113,7 @@ resource "oci_core_subnet" "main" {
   cidr_block          = "10.1.20.0/24"
   display_name = format("%sSubnet", replace(title(var.instance_name), "/\\s/", ""))
   dns_label = format("%ssubnet", lower(replace(var.instance_name, "/\\s/", "")))
-  security_list_ids = [oci_core_security_list.main.id]
+  security_list_ids = [oci_core_security_list.main.id, oci_core_security_list.cloudflare.id]
   compartment_id      = var.compartment_ocid
   vcn_id              = oci_core_vcn.main.id
   route_table_id      = oci_core_vcn.main.default_route_table_id
