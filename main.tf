@@ -56,6 +56,8 @@ locals {
     "2a06:98c0::/29",
     "2c0f:f248::/32",
   ]
+
+  instance_exit_node_ip = "151.145.85.226/32"
 }
 
 resource "oci_core_security_list" "main" {
@@ -85,6 +87,12 @@ resource "oci_core_security_list" "main" {
     #   min = 22
     #   max = 22
     # }
+  }
+
+  ingress_security_rules {
+    protocol = "6"
+    source   = local.instance_exit_node_ip
+    stateless = false
   }
 }
 
